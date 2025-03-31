@@ -5,7 +5,7 @@
     {
       "name": "微光色影",
       "type": 0,
-      "url": "./福利源.m3u",
+      "url": "./w.txt",
       "epg": "http://epg.112114.eu.org/?ch={name}&date={date}"
     }
   ],

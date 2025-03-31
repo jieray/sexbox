@@ -1,5 +1,5 @@
 {
-  "spider": "https://cdn.jsdelivr.net/gh/yanghanhanyingshi/yanghanhanyingshi@main/20250401X.jar;md5;9d8407a76b2abeeaabdd147b1b93799f",
+  "spider": "./20250401X.jar;md5;9d8407a76b2abeeaabdd147b1b93799f",
   "logo": "./H.gif",
   "lives": [
     {

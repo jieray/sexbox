@@ -15,9 +15,9 @@
       "epg": "http://epg.112114.eu.org/?ch={name}&date={date}"
     },
     { 
-      "name": "r",
+      "name": "c",
       "type": 0,
-      "url": "./C.txt",
+      "url": "https://github.moeyy.xyz/https://github.com/yanghanhanyingshi/yanghanhanyingshi/blob/main/C.txt",
       "epg": "http://epg.112114.eu.org/?ch={name}&date={date}"
     },
    { 

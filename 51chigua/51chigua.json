@@ -1,5 +1,32 @@
 {
 "spider": "./51chigua.jar",
+   "logo": "./H.gif",
+  "lives": [
+    {
+      "name": "w",
+      "type": 0,
+      "url": "./w.txt",
+      "epg": "http://epg.112114.eu.org/?ch={name}&date={date}"
+    },
+   { 
+      "name": "r",
+      "type": 0,
+      "url": "./r.txt",
+      "epg": "http://epg.112114.eu.org/?ch={name}&date={date}"
+    },
+    { 
+      "name": "r",
+      "type": 0,
+      "url": "./C.txt",
+      "epg": "http://epg.112114.eu.org/?ch={name}&date={date}"
+    },
+   { 
+      "name": "h",
+      "type": 0,
+      "url": "./h.txt",
+      "epg": "http://epg.112114.eu.org/?ch={name}&date={date}"
+    }
+  ],
   "sites": [
      {
       "key": "Cg51",

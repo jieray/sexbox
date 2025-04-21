@@ -1,33 +1,6 @@
 {
 "spider": "./51chigua.jar",
-   "logo": "./H.gif",
-  "lives": [
-    {
-      "name": "w",
-      "type": 0,
-      "url": "https://github.moeyy.xyz/https://github.com/yanghanhanyingshi/yanghanhanyingshi/blob/main/w.txt",
-      "epg": "http://epg.112114.eu.org/?ch={name}&date={date}"
-    },
-   { 
-      "name": "r",
-      "type": 0,
-      "url": "./r.txt",
-      "epg": "http://epg.112114.eu.org/?ch={name}&date={date}"
-    },
-    { 
-      "name": "c",
-      "type": 0,
-      "url": "https://github.moeyy.xyz/https://github.com/yanghanhanyingshi/yanghanhanyingshi/blob/main/C.txt",
-      "epg": "http://epg.112114.eu.org/?ch={name}&date={date}"
-    },
-   { 
-      "name": "h",
-      "type": 0,
-      "url": "./h.txt",
-      "epg": "http://epg.112114.eu.org/?ch={name}&date={date}"
-    }
-  ],
-  "sites": [
+"sites": [
      {
       "key": "Cg51",
       "name": "51吃瓜",

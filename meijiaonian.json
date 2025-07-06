@@ -38,6 +38,18 @@
         "篮球"
       ]
     },
+	  {
+      "key": "短剧",
+      "name": "娇短剧",
+      "type": 1,
+      "api": "https://ww.tyyszy5.com/api.php/provide/vod/?ac=lis",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "categories": [
+        "短剧"
+      ]
+    },
      {
       "key": "大奶子",
       "name": "美娇娘",

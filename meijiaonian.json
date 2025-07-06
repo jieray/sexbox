@@ -87,7 +87,40 @@
         "野外露出"
         
       ]
-    }
+    },
+	 {
+      "key": "橘猫资源",
+      "name": "美娇姨",
+      "type": 1,
+      "api": "https://to.to-long.com/api.php/provide/vod/?ac=list",
+      "searchable": 1,
+      "recordable": 0,
+      "style": {
+        "type": "rect",
+        "ratio": 1.33
+      },
+      "header": {
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "User-Agent": "Mozilla/5.0(WindowsNT10.0;Win64;x64)AppleWebKit/537.36(KHTML,likeGecko)Chrome/117.0.0.0Safari/537.36"
+      },
+      "categories": [
+        "制服黑丝",
+        "国产情色",
+        "欧美性爱",
+        "中文字幕",
+        "强奸乱伦",
+        "少女萝莉",
+        "巨乳美乳",
+        "变态调教",
+        "熟女人妻",
+        "日本无码",
+        "卡通动画",
+        "三级伦理",
+        "国产自拍",
+        "重口色情",
+        "人兽性交"
+      ]
+    } 
   ],
   "lives": [
     {

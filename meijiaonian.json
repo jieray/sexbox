@@ -89,10 +89,11 @@
       ]
     },
 	 {
-      "key": "橘猫资源",
-      "name": "美娇姨",
+      "key": "乐播",
+      "name": "️美娇姨",
       "type": 1,
-      "api": "https://to.to-long.com/api.php/provide/vod/?ac=list",
+      "api": "https://lbapi9.com/api.php/provide/vod/",
+      "playUrl": "",
       "searchable": 1,
       "recordable": 0,
       "style": {
@@ -103,24 +104,26 @@
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
         "User-Agent": "Mozilla/5.0(WindowsNT10.0;Win64;x64)AppleWebKit/537.36(KHTML,likeGecko)Chrome/117.0.0.0Safari/537.36"
       },
+      "filterable": 1,
       "categories": [
-        "制服黑丝",
-        "国产情色",
-        "欧美性爱",
-        "中文字幕",
-        "强奸乱伦",
-        "少女萝莉",
-        "巨乳美乳",
-        "变态调教",
-        "熟女人妻",
-        "日本无码",
-        "卡通动画",
-        "三级伦理",
+        "亚洲情色",
+        "国产主播",
         "国产自拍",
+        "无码专区",
+        "欧美性爱",
+        "熟女人妻",
+        "强奸乱伦",
+        "巨乳美乳",
+        "中文字幕",
+        "制服诱惑",
+        "女同性恋",
+        "卡通动画",
+        "视频伦理",
+        "少女萝莉",
         "重口色情",
         "人兽性交"
       ]
-    } 
+    }
   ],
   "lives": [
     {

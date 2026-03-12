@@ -131,8 +131,8 @@ class Spider(Spider):
         params = {
             'v': '1',
         }
-        self.headers.update({'referer': 'https://a.hdys.top/'})
-        response = self.session.get('https://a.hdys.top/assets/js/config.js',proxies=self.proxies,params=params,headers=self.headers)
+        self.headers.update({'referer': 'https://hd14.huaduziyuan.com/'})
+        response = self.session.get('https://hd14.huaduziyuan.com/js/config.js',proxies=self.proxies,params=params,headers=self.headers)
         return self.host_late(response.text.split(';')[:-4])
 
     def getlist(self,data):

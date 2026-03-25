@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>留言板</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 26px;
+            color: #fff;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .input-box {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+
+        input, textarea {
+            width: 100%;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin-bottom: 12px;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #ff9a8b;
+            box-shadow: 0 0 0 3px rgba(255,154,139,0.2);
+        }
+
+        textarea {
+            resize: none;
+            height: 100px;
+        }
+
+        #submitBtn {
+            width: 100%;
+            background: linear-gradient(to right, #ff9a8b, #ff6a88, #ff99ac);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        #submitBtn:active {
+            transform: scale(0.97);
+        }
+
+        .msg-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .msg-item {
+            background: #fff;
+            border-radius: 14px;
+            padding: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            position: relative;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .name {
+            font-weight: bold;
+            color: #ff6a88;
+            margin-bottom: 6px;
+            font-size: 16px;
+        }
+
+        .content {
+            color: #333;
+            line-height: 1.5;
+            margin-bottom: 8px;
+            word-break: break-all;
+        }
+
+        .time {
+            font-size: 12px;
+            color: #999;
+            text-align: right;
+        }
+
+        .empty {
+            text-align: center;
+            color: #fff;
+            opacity: 0.7;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">🌈 留言板</div>
+
+        <div class="input-box">
+            <input type="text" id="name" placeholder="请输入你的昵称~">
+            <textarea id="content" placeholder="来说点什么吧…"></textarea>
+            <button id="submitBtn">发表留言</button>
+        </div>
+
+        <div class="msg-list" id="msgList">
+            <div class="empty">暂无留言，快来抢沙发吧~</div>
+        </div>
+    </div>
+
+    <script>
+        const submitBtn = document.getElementById('submitBtn');
+        const msgList = document.getElementById('msgList');
+
+        submitBtn.addEventListener('click', function () {
+            const name = document.getElementById('name').value.trim();
+            const content = document.getElementById('content').value.trim();
+
+            if (!name || !content) {
+                alert('昵称和留言内容都不能为空哦~');
+                return;
+            }
+
+            // 清空空提示
+            if (msgList.querySelector('.empty')) {
+                msgList.innerHTML = '';
+            }
+
+            // 时间
+            const now = new Date();
+            const timeStr = now.getFullYear() + '-' +
+                String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                String(now.getDate()).padStart(2, '0') + ' ' +
+                String(now.getHours()).padStart(2, '0') + ':' +
+                String(now.getMinutes()).padStart(2, '0');
+
+            // 构建DOM
+            const item = document.createElement('div');
+            item.className = 'msg-item';
+            item.innerHTML = `
+                <div class="name">${name}</div>
+                <div class="content">${content}</div>
+                <div class="time">${timeStr}</div>
+            `;
+
+            msgList.prepend(item);
+
+            // 清空输入
+            document.getElementById('content').value = '';
+        });
+    </script>
+</body>
+</html>

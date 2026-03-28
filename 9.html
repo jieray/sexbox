@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>极光播放器 · 全能影音</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: radial-gradient(circle at 20% 30%, #0a0f1f, #03060c);
+            min-height: 100vh;
+            padding: 20px 16px 48px;
+            color: #eef4ff;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at 40% 50%, rgba(66, 153, 225, 0.2), transparent 70%);
+            pointer-events: none;
+            z-index: -1;
+            animation: breathe 8s infinite alternate;
+        }
+
+        @keyframes breathe {
+            0% { opacity: 0.4; transform: scale(1); }
+            100% { opacity: 0.9; transform: scale(1.05); }
+        }
+
+        .glass-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .title-wrap {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .glow-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(125deg, #b2f0ff, #c084fc, #f9a8d4, #ffd966);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: flowGradient 5s ease infinite;
+        }
+
+        @keyframes flowGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .sub {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-top: 6px;
+        }
+
+        .input-card {
+            background: rgba(20, 28, 45, 0.65);
+            backdrop-filter: blur(16px);
+            border-radius: 38px;
+            padding: 8px 8px 8px 22px;
+            margin-bottom: 18px;
+            border: 1px solid rgba(102, 126, 234, 0.5);
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        #videoUrl {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 16px 0;
+            font-size: 1rem;
+            color: white;
+            outline: none;
+            font-weight: 500;
+        }
+
+        #videoUrl::placeholder {
+            color: rgba(200, 210, 255, 0.6);
+        }
+
+        .parse-btn {
+            background: linear-gradient(115deg, #4f46e5, #a855f7);
+            border: none;
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 6px 14px rgba(79, 70, 229, 0.3);
+            white-space: nowrap;
+        }
+
+        .parse-btn:active {
+            transform: scale(0.96);
+        }
+
+        .player-stage {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            border-radius: 28px;
+            background: #000;
+            overflow: hidden;
+            margin-bottom: 24px;
+            box-shadow: 0 20px 35px -12px black;
+            border: 1px solid rgba(255,255,200,0.2);
+        }
+
+        .player-stage::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 28px;
+            padding: 2px;
+            background: linear-gradient(125deg, #ffb347, #ff79c6, #5d9bff);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        #mediaPlayer {
+            width: 100%;
+            height: 100%;
+            background: #0a0a0a;
+            outline: none;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            border-radius: 28px;
+        }
+
+        .spinner {
+            width: 44px;
+            height: 44px;
+            border: 3px solid rgba(255,255,255,0.2);
+            border-top: 3px solid #f97316;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .unified-card {
+            background: rgba(15, 25, 45, 0.65);
+            backdrop-filter: blur(16px);
+            border-radius: 28px;
+            padding: 18px 22px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(139, 92, 246, 0.4);
+        }
+
+        .card-title {
+            font-weight: 700;
+            font-size: 1rem;
+            background: linear-gradient(135deg, #f0a6ff, #77ddff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-content {
+            font-size: 0.85rem;
+            line-height: 1.55;
+            color: #e2edff;
+        }
+
+        .engine-status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+            background: rgba(0,0,0,0.35);
+            border-radius: 60px;
+            padding: 8px 16px;
+        }
+
+        .engine-badge {
+            background: #f97316;
+            border-radius: 40px;
+            padding: 4px 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .support-tag {
+            font-size: 0.7rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 40px;
+            padding: 4px 12px;
+        }
+
+        .highlight {
+            color: #facc15;
+        }
+
+        /* 高级设置区域 */
+        .advanced-settings {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed rgba(255,255,255,0.2);
+        }
+
+        .setting-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .setting-label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            min-width: 80px;
+        }
+
+        .referer-input {
+            flex: 1;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 30px;
+            padding: 8px 16px;
+            color: white;
+            font-size: 0.8rem;
+            outline: none;
+        }
+
+        .toggle-icon {
+            cursor: pointer;
+            background: rgba(255,255,255,0.1);
+            border-radius: 30px;
+            padding: 6px 12px;
+            font-size: 0.7rem;
+        }
+
+        .log-area {
+            background: rgba(0,0,0,0.5);
+            border-radius: 20px;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 0.7rem;
+            max-height: 150px;
+            overflow-y: auto;
+            margin-top: 12px;
+            color: #b0f0ff;
+        }
+
+        .log-entry {
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 4px 0;
+            word-break: break-all;
+        }
+
+        @media (max-width: 620px) {
+            body {
+                padding: 16px 12px 32px;
+            }
+            .input-row {
+                flex-direction: column;
+            }
+            .input-card {
+                padding: 12px 16px;
+            }
+            .parse-btn {
+                width: 100%;
+                text-align: center;
+            }
+            .glow-title {
+                font-size: 1.8rem;
+            }
+            .setting-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .setting-label {
+                margin-bottom: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="glass-container">
+    <div class="title-wrap">
+        <div class="glow-title"> 极光播放器 · 全能影音 </div>
+        <div class="sub">支持 MP4 | M3U8 | 防盗链破解 · 全平台适配</div>
+    </div>
+
+    <div class="input-card">
+        <div class="input-row">
+            <input type="text" id="videoUrl" placeholder="粘贴 M3U8 / MP4 链接（如：https://.../index.m3u8）">
+            <button class="parse-btn" id="playBtn">▶ 播放 / 加载</button>
+        </div>
+    </div>
+
+    <div class="player-stage">
+        <video id="mediaPlayer" controls playsinline webkit-playsinline x5-playsinline preload="metadata" style="width:100%; height:100%; object-fit: contain;"></video>
+        <div id="loadingOverlay" class="loading-overlay hidden">
+            <div class="spinner"></div>
+            <div class="loading-text">极光引擎加载中 · 解码流媒体</div>
+        </div>
+    </div>
+
+    <!-- 增强引擎卡片 + 高级设置 -->
+    <div class="unified-card">
+        <div class="card-title">
+            🚀 极光解码引擎
+            <span class="engine-badge">硬件加速 + 防盗链支持</span>
+        </div>
+        <div class="card-content">
+            <div>✨ 智能适配 HLS.js / 原生播放，支持自定义 Referer 绕过防盗链</div>
+            <div class="engine-status" id="engineStatusArea">
+                <span>🎯 引擎状态: <strong id="engineState" style="color:#22c55e;">● 就绪</strong></span>
+                <span>📀 支持格式: MP4 | M3U8 | M3U (HLS)</span>
+            </div>
+            <div class="advanced-settings">
+                <div class="setting-row">
+                    <span class="setting-label">🔒 防盗链 Referer</span>
+                    <input type="text" id="refererInput" class="referer-input" placeholder="自动 (留空则自动使用目标域名) 或 手动填写如 https://www.maoyan.com/">
+                    <span id="autoRefererHint" class="toggle-icon">🌐 自动</span>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-label">📋 附加 Origin</span>
+                    <input type="text" id="originInput" class="referer-input" placeholder="可选，如 https://www.maoyan.com">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 诊断日志面板 -->
+    <div class="unified-card">
+        <div class="card-title">
+            📡 诊断日志
+            <span class="support-tag" id="clearLogBtn" style="cursor:pointer;">清除日志</span>
+        </div>
+        <div id="logContainer" class="log-area">
+            <div class="log-entry">✅ 播放器已就绪，等待播放指令</div>
+        </div>
+    </div>
+
+    <div class="unified-card">
+        <div class="card-title">📖 使用说明 & 防盗链处理</div>
+        <div class="card-content">
+            <strong>1.</strong> 粘贴 M3U8/MP4 链接，点击播放；<br>
+            <strong>2.</strong> 若遇到 403/404 等错误，请在「防盗链 Referer」框中填写正确来源（如视频网站域名）<br>
+            <strong>3.</strong> 点击「自动」按钮将尝试从链接域名提取 Referer（如 https://play.maoyanplay.top/ → https://play.maoyanplay.top/）；<br>
+            <strong>4.</strong> 查看「诊断日志」获取 HTTP 状态码与详细错误，便于排查链接是否失效。<br>
+            <strong class="highlight">✨ 提示：</strong> 测试链接可用 <span style="background:#222; padding:2px 6px; border-radius:12px;">https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8</span> 验证播放器功能。
+        </div>
+    </div>
+
+    <div class="unified-card">
+        <div class="card-title">⚖️ 免责声明</div>
+        <div class="card-content">
+            1. 本播放器仅用于合法观看个人授权资源，请勿用于侵权用途。<br>
+            2. 用户自行设置 Referer 等参数需遵守相关网站条款。<br>
+            3. 因滥用产生的法律责任由使用者自行承担。
+        </div>
+    </div>
+</div>
+
+<script>
+    // DOM 元素
+    const video = document.getElementById('mediaPlayer');
+    const playBtn = document.getElementById('playBtn');
+    const urlInput = document.getElementById('videoUrl');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const engineStateSpan = document.getElementById('engineState');
+    const refererInput = document.getElementById('refererInput');
+    const originInput = document.getElementById('originInput');
+    const autoRefererHint = document.getElementById('autoRefererHint');
+    const logContainer = document.getElementById('logContainer');
+    const clearLogBtn = document.getElementById('clearLogBtn');
+
+    let hls = null;
+    let currentUrl = '';
+
+    // 日志函数
+    function addLog(message, isError = false) {
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        entry.style.color = isError ? '#ffaa88' : '#b0f0ff';
+        entry.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+        logContainer.appendChild(entry);
+        entry.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        // 限制日志条数最多50
+        while (logContainer.children.length > 50) {
+            logContainer.removeChild(logContainer.firstChild);
+        }
+    }
+
+    function clearLog() {
+        logContainer.innerHTML = '';
+        addLog('日志已清空');
+    }
+    clearLogBtn.addEventListener('click', clearLog);
+
+    // 更新引擎状态
+    function setEngineStatus(status, isError = false) {
+        engineStateSpan.innerHTML = isError ? `⚠️ ${status}` : `● ${status}`;
+        engineStateSpan.style.color = isError ? '#f97316' : '#22c55e';
+    }
+
+    function showLoading(text = '极光引擎加载中 · 解码流媒体') {
+        const txtSpan = loadingOverlay.querySelector('.loading-text');
+        if (txtSpan) txtSpan.innerText = text;
+        loadingOverlay.classList.remove('hidden');
+    }
+
+    function hideLoading() {
+        loadingOverlay.classList.add('hidden');
+    }
+
+    // 销毁当前播放器
+    function destroyPlayer() {
+        if (hls) {
+            try { hls.destroy(); } catch(e) { addLog(`HLS销毁异常: ${e.message}`, true); }
+            hls = null;
+        }
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+        currentUrl = '';
+    }
+
+    // 获取最终使用的 Referer 和 Origin
+    function getCustomHeaders(targetUrl) {
+        let referer = refererInput.value.trim();
+        let origin = originInput.value.trim();
+
+        // 如果用户留空 Referer，尝试自动从目标 URL 提取域名作为 Referer
+        if (!referer) {
+            try {
+                const urlObj = new URL(targetUrl);
+                referer = urlObj.origin + '/';   // 例如 https://play.maoyanplay.top/
+                addLog(`🔍 自动生成 Referer: ${referer}`);
+            } catch (e) {
+                addLog(`⚠️ 无法解析链接域名，Referer 留空`, true);
+                referer = '';
+            }
+        }
+
+        // 如果 Origin 为空，且 Referer 有效，可以尝试用 Referer 作为 Origin
+        if (!origin && referer) {
+            origin = referer.replace(/\/$/, ''); // 去掉末尾斜杠
+        }
+
+        return { referer, origin };
+    }
+
+    // 播放核心
+    async function playMedia(url) {
+        if (!url) {
+            alert('请输入视频链接');
+            return false;
+        }
+
+        destroyPlayer();
+        currentUrl = url;
+        showLoading('正在加载媒体流 ...');
+        setEngineStatus('加载中');
+        addLog(`🎬 开始加载: ${url}`);
+
+        const isHls = url.toLowerCase().includes('.m3u8') || url.toLowerCase().includes('.m3u');
+        const headers = getCustomHeaders(url);
+
+        if (isHls && Hls.isSupported()) {
+            addLog(`📦 使用 HLS.js 播放，Referer: ${headers.referer || '无'}，Origin: ${headers.origin || '无'}`);
+            try {
+                const hlsConfig = {
+                    enableWorker: true,
+                    lowLatencyMode: true,
+                    maxBufferLength: 30,
+                    autoStartLoad: true,
+                    debug: false,
+                    xhrSetup: function(xhr, xhrUrl) {
+                        // 为所有请求添加自定义头
+                        if (headers.referer) {
+                            xhr.setRequestHeader('Referer', headers.referer);
+                        }
+                        if (headers.origin) {
+                            xhr.setRequestHeader('Origin', headers.origin);
+                        }
+                        // 添加常见 UA 伪装
+                        xhr.setRequestHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+                        // 监听请求完成，记录状态码
+                        xhr.onreadystatechange = function() {
+                            if (xhr.readyState === 4) {
+                                if (xhr.status !== 200 && xhr.status !== 206) {
+                                    addLog(`❌ HTTP ${xhr.status} 加载失败: ${xhrUrl}`, true);
+                                } else {
+                                    addLog(`✅ HTTP ${xhr.status} 成功: ${xhrUrl.substring(0, 80)}`);
+                                }
+                            }
+                        };
+                    }
+                };
+                hls = new Hls(hlsConfig);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+                    addLog('HLS 已挂载到 video 元素');
+                    hls.loadSource(url);
+                });
+                hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                    addLog('✅ M3U8 清单解析成功，开始播放');
+                    hideLoading();
+                    setEngineStatus('HLS 播放中');
+                    video.play().catch(e => addLog(`自动播放失败: ${e.message}`, true));
+                });
+                hls.on(Hls.Events.ERROR, (event, data) => {
+                    if (data.fatal) {
+                        let errMsg = 'HLS 致命错误';
+                        if (data.details === Hls.ErrorDetails.MANIFEST_LOAD_ERROR) {
+                            errMsg = '清单加载失败，链接可能失效或防盗链';
+                        } else if (data.details === Hls.ErrorDetails.MANIFEST_LOAD_TIMEOUT) {
+                            errMsg = '清单加载超时';
+                        } else if (data.details === Hls.ErrorDetails.FRAG_LOAD_ERROR) {
+                            errMsg = '分片加载失败，网络或防盗链问题';
+                        } else {
+                            errMsg = `错误: ${data.details}`;
+                        }
+                        if (data.response && data.response.code) {
+                            errMsg += ` (HTTP ${data.response.code})`;
+                        }
+                        addLog(`❌ ${errMsg}`, true);
+                        setEngineStatus(errMsg, true);
+                        hideLoading();
+                        destroyPlayer();
+                        alert(`播放失败：${errMsg}\n请检查链接有效性或调整 Referer 设置。`);
+                    } else {
+                        addLog(`⚠️ HLS 非致命警告: ${data.details}`, false);
+                    }
+                });
+                // 超时保护
+                const timeout = setTimeout(() => {
+                    if (!loadingOverlay.classList.contains('hidden')) {
+                        addLog('⏰ 加载超时，请检查链接或网络', true);
+                        hideLoading();
+                        setEngineStatus('加载超时', true);
+                    }
+                }, 20000);
+                hls.on(Hls.Events.MANIFEST_PARSED, () => clearTimeout(timeout));
+                hls.on(Hls.Events.ERROR, () => clearTimeout(timeout));
+            } catch (err) {
+                addLog(`HLS 初始化异常: ${err.message}`, true);
+                hideLoading();
+                setEngineStatus('引擎初始化失败', true);
+                alert('播放器初始化失败，请刷新页面重试');
+                return false;
+            }
+        } else if (isHls && !Hls.isSupported()) {
+            // 原生 HLS 支持 (Safari)
+            addLog(`🍎 使用原生 HLS 播放 (Safari)`);
+            video.src = url;
+            video.addEventListener('canplay', () => {
+                hideLoading();
+                setEngineStatus('原生 HLS 播放中');
+                addLog('原生 HLS 可播放');
+                video.play().catch(e => addLog(`自动播放失败: ${e.message}`, true));
+            });
+            video.addEventListener('error', (e) => {
+                const errorCode = video.error ? video.error.code : -1;
+                let errMsg = '视频加载失败';
+                if (errorCode === 4) errMsg = '链接无效或跨域限制';
+                addLog(`❌ 原生播放错误: ${errMsg}`, true);
+                setEngineStatus(errMsg, true);
+                hideLoading();
+                alert(`播放失败：${errMsg}`);
+            });
+        } else {
+            // 非 HLS 直接播放 MP4
+            addLog(`🎞️ 使用原生播放器加载 MP4 资源`);
+            video.src = url;
+            video.addEventListener('canplay', () => {
+                hideLoading();
+                setEngineStatus('MP4 播放中');
+                addLog('MP4 资源加载成功');
+                video.play().catch(e => addLog(`自动播放失败: ${e.message}`, true));
+            });
+            video.addEventListener('error', (e) => {
+                const errMsg = video.error ? `错误码 ${video.error.code}` : '未知错误';
+                addLog(`❌ MP4 加载失败: ${errMsg}`, true);
+                setEngineStatus('MP4 加载失败', true);
+                hideLoading();
+                alert(`播放失败：${errMsg}\n请检查链接格式。`);
+            });
+        }
+        return true;
+    }
+
+    // 播放按钮逻辑
+    function onPlay() {
+        let rawUrl = urlInput.value.trim();
+        if (!rawUrl) {
+            alert('请输入有效的视频链接');
+            return;
+        }
+        if (!rawUrl.startsWith('http://') && !rawUrl.startsWith('https://')) {
+            alert('链接必须以 http:// 或 https:// 开头');
+            return;
+        }
+        playMedia(rawUrl);
+    }
+
+    // 自动 Referer 生成辅助
+    function autoSetReferer() {
+        let url = urlInput.value.trim();
+        if (!url) {
+            alert('请先输入视频链接');
+            return;
+        }
+        try {
+            const urlObj = new URL(url);
+            const origin = urlObj.origin;
+            refererInput.value = origin + '/';
+            originInput.value = origin;
+            addLog(`🔧 自动设置 Referer: ${origin}/ , Origin: ${origin}`);
+        } catch (e) {
+            addLog(`⚠️ 无法解析链接，请手动填写 Referer`, true);
+        }
+    }
+    autoRefererHint.addEventListener('click', autoSetReferer);
+
+    // 绑定事件
+    playBtn.addEventListener('click', onPlay);
+    urlInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') onPlay(); });
+
+    // 页面加载完成
+    window.addEventListener('load', () => {
+        hideLoading();
+        setEngineStatus('就绪');
+        addLog('极光播放器专业版已启动，支持自定义 Referer 防盗链');
+    });
+
+    // 清理资源
+    window.addEventListener('beforeunload', () => {
+        if (hls) hls.destroy();
+    });
+</script>
+</body>
+</html>

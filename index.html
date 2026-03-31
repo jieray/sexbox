@@ -1,1 +1,858 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>酷鱼留言本 | 多彩主题 | 全端适配</title>
+  
+  <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.4/dist/umd/supabase.min.js"></script>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+    }
+    
+    body {
+      background-color: #f0f2f5;
+      color: #333;
+      min-height: 100vh;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .header-container {
+      background: linear-gradient(120deg, #6366F1, #8B5CF6, #EC4899, #F59E0B, #10B981);
+      background-size: 400% 400%;
+      animation: gradientFlow 8s ease-in-out infinite;
+      padding: 30px 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      position: relative;
+    }
+    
+    @keyframes gradientFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    .header-title {
+      color: white;
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .header-subtitle {
+      color: rgba(255,255,255,0.9);
+      font-size: 14px;
+    }
+
+    .main-container {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .message-form {
+      background: white;
+      border-radius: 16px;
+      padding: 25px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+      margin-bottom: 30px;
+      border: 1px solid #f5f5f5;
+    }
+    
+    .form-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #6366F1;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .form-group {
+      margin-bottom: 18px;
+    }
+    
+    .form-label {
+      display: block;
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    
+    .form-input, .form-textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 不同14px;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+    
+    .form-input:focus, .form-textarea:focus {
+      border-color: #8B5CF6;
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    }
+    
+    .form-textarea {
+      min-height: 120px;
+      resize: none;
+      line-height: 1.5;
+    }
+
+    .emoji-wrapper {
+      margin-bottom: 10px;
+    }
+    .emoji-toggle {
+      background: #f5f5f5;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      color: #6366F1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 14px;
+    }
+    .emoji-toggle:hover {
+      background: #eee;
+    }
+    .emoji-panel {
+      display: none;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 10px;
+      background: #f9f9f9;
+      border-radius: 8px;
+      margin-top: 8px;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    .emoji-panel.show {
+      display: flex;
+    }
+    .emoji-item {
+      font-size: 18px;
+      cursor: pointer;
+      padding: 5px;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+    .emoji-item:hover {
+      background: #eee;
+      transform: scale(1.2);
+    }
+
+    .upload-wrapper {
+      margin: 10px 0;
+    }
+    .upload-btn {
+      display: inline-block;
+      background: #f5f5f5;
+      border: 1px dashed #ddd;
+      padding: 15px 20px;
+      border-radius: 8px;
+      color: #6366F1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+    .upload-btn:hover {
+      background: #f0f0f0;
+      border-color: #8B5CF6;
+    }
+    #fileInput {
+      display: none;
+    }
+    .preview-container {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .image-preview {
+      width: 100px;
+      height: 100px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 1px solid #eee;
+      position: relative;
+    }
+    .preview-item {
+      position: relative;
+    }
+    .remove-preview {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #EF4444;
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .upload-progress {
+      margin-top: 8px;
+      height: 6px;
+      background: #f0f0f0;
+      border-radius: 3px;
+      overflow: hidden;
+      display: none;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(to right, #6366F1, #8B5CF6);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(to right, #6366F1, #8B5CF6);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2);
+    }
+    
+    .submit-btn:hover {
+      opacity: 0.95;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(99, 102, 241, 0.3);
+    }
+    
+    .submit-btn:active {
+      transform: translateY(0);
+    }
+
+    .message-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .message-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.04);
+      transition: all 0.3s ease;
+      border-left: 4px solid #6366F1;
+    }
+    
+    .message-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    }
+    
+    .message-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .message-username {
+      font-weight: 600;
+      color: #6366F1;
+      font-size: 16px;
+    }
+    
+    .message-time {
+      font-size: 12px;
+      color: #999;
+    }
+    
+    .message-content {
+      color: #555;
+      line-height: 1.6;
+      font-size: 14px;
+      white-space: pre-wrap;
+      margin-bottom: 10px;
+    }
+
+    .message-reply {
+      background: #f8fafc;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 10px;
+      border-left: 3px solid #10b981;
+    }
+    .reply-label {
+      font-size: 13px;
+      color: #10b981;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    .reply-content {
+      font-size: 14px;
+      color: #334155;
+      line-height: 1.5;
+    }
+
+    .message-images {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .message-image {
+      width: 120px;
+      height: 120px;
+      border-radius: 8px;
+      object-fit: cover;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+      border: 1px solid #eee;
+      object-position: center;
+      background: #f9f9f9;
+    }
+    .message-image:hover {
+      transform: scale(1.05);
+    }
+
+    .image-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.85);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-content {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 10px;
+    }
+    .close-modal {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      color: white;
+      font-size: 30px;
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.5);
+      border-radius: 50%;
+    }
+
+    .empty-state, .loading-state {
+      text-align: center;
+      padding: 50px 20px;
+      color: #999;
+    }
+    
+    .empty-icon, .loading-icon {
+      font-size: 40px;
+      margin-bottom: 15px;
+      color: #ddd;
+    }
+    
+    .loading-icon {
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 20px;
+      border-radius: 8px;
+      color: white;
+      font-size: 14px;
+      z-index: 9999;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      animation: fadeInUp 0.3s ease forwards;
+    }
+    
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translate(-50%, 20px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+    
+    .toast-success { background-color: #10B981; }
+    .toast-error { background-color: #EF4444; }
+    .toast-warning { background-color: #F59E0B; }
+
+    .footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 12px;
+      color: #999;
+      margin-top: 30px;
+      border-top: 1px solid #f5f5f5;
+    }
+
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+      padding: 10px 0;
+    }
+    .page-btn {
+      padding: 8px 14px;
+      border-radius: 8px;
+      background: white;
+      border: 1px solid #e0e0e0;
+      color: #6366F1;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .page-btn:hover:not(.disabled) {
+      background: #6366F1;
+      color: white;
+      border-color: #6366F1;
+    }
+    .page-btn.disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .page-info {
+      font-size: 14px;
+      color: #666;
+      padding: 0 10px;
+    }
+
+    @media (max-width: 768px) {
+      .header-title { font-size: 24px; }
+      .message-form { padding: 20px; }
+      .message-card { padding: 15px; }
+      .message-image { width: 100px; height: 100px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header-container">
+    <div class="main-container">
+      <h1 class="header-title">
+        <i class="fas fa-comments"></i> 酷鱼留言本
+      </h1>
+      <p class="header-subtitle"> 永久存储 · 全端适配 </p>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <div class="message-form">
+      <h2 class="form-title">
+        <i class="fas fa-pen-alt"></i> 发表留言
+      </h2>
+      <form id="messageForm">
+        <div class="form-group">
+          <label class="form-label">昵称</label>
+          <input 
+            type="text" 
+            id="username" 
+            class="form-input" 
+            required 
+            placeholder="请输入你的昵称（≤20字）"
+            maxlength="20"
+          >
+        </div>
+        <div class="form-group">
+          <label class="form-label">留言内容</label>
+          <div class="emoji-wrapper">
+            <button type="button" class="emoji-toggle" id="emojiToggle">
+              <i class="fas fa-smile"></i> 表情
+            </button>
+            <div class="emoji-panel" id="emojiPanel"></div>
+          </div>
+          <textarea 
+            id="messageContent" 
+            class="form-textarea" 
+            required 
+            placeholder="分享你的想法（≤500字）"
+            maxlength="500"
+          ></textarea>
+          
+          <div class="upload-wrapper">
+            <label for="fileInput" class="upload-btn">
+              <i class="fas fa-image"></i> 选择图片（最多支持九张图片）
+            </label>
+            <input type="file" id="fileInput" accept="image/*" multiple />
+            
+            <div class="upload-progress" id="uploadProgress">
+              <div class="progress-bar" id="progressBar"></div>
+            </div>
+            
+            <div class="preview-container" id="previewContainer"></div>
+          </div>
+        </div>
+        <button type="submit" class="submit-btn">
+          <i class="fas fa-paper-plane"></i> 提交留言
+        </button>
+      </form>
+    </div>
+
+    <div id="messageList" class="message-list">
+      <div class="loading-state">
+        <i class="fas fa-spinner loading-icon"></i>
+        <p>正在加载留言...</p>
+      </div>
+    </div>
+
+    <div id="pagination" class="pagination" style="display: none;">
+      <button class="page-btn" id="prevPage">上一页</button>
+      <span class="page-info" id="pageInfo">第 1 页 / 共 0 页</span>
+      <button class="page-btn" id="nextPage">下一页</button>
+    </div>
+
+    <div class="footer">
+      <p>✨ 酷鱼留言本  · 全端适配</p>
+    </div>
+  </div>
+
+  <div class="image-modal" id="imageModal">
+    <span class="close-modal" id="closeModal">&times;</span>
+    <img class="modal-content" id="modalImage">
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://eljzfbawdcfzufzehrtp.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVsanpmYmF3ZGNmenVmemVocnRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5MzUxNzQsImV4cCI6MjA5MDUxMTE3NH0.s4U7BJsscobR731mX-2lhp-A3riz65o6lTgn7XtCARI";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const EMOJIS = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😜','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','😎','🤓','🧐','😕','😟','🙁','☹️','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿','💀','☠️','💩','🤡','👹','👺','👻','👽','👾','🤖','🎃','😺','😸','😹','😻','😼','😽','🙀','😿','😾'];
+
+    const messageForm = document.getElementById('messageForm');
+    const username = document.getElementById('username');
+    const messageContent = document.getElementById('messageContent');
+    const messageList = document.getElementById('messageList');
+    const emojiToggle = document.getElementById('emojiToggle');
+    const emojiPanel = document.getElementById('emojiPanel');
+    const fileInput = document.getElementById('fileInput');
+    const previewContainer = document.getElementById('previewContainer');
+    const uploadProgress = document.getElementById('uploadProgress');
+    const progressBar = document.getElementById('progressBar');
+    const imageModal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    const closeModal = document.getElementById('closeModal');
+
+    const pagination = document.getElementById('pagination');
+    const prevPage = document.getElementById('prevPage');
+    const nextPage = document.getElementById('nextPage');
+    const pageInfo = document.getElementById('pageInfo');
+
+    let selectedFiles = [];
+    let currentPage = 1;
+    const pageSize = 10;
+    let totalPages = 0;
+    let totalCount = 0;
+
+    function initEmojiPanel() {
+      let emojiHtml = '';
+      EMOJIS.forEach(emoji => {
+        emojiHtml += `<span class="emoji-item" onclick="insertEmoji('${emoji}')">${emoji}</span>`;
+      });
+      emojiPanel.innerHTML = emojiHtml;
+    }
+
+    emojiToggle.addEventListener('click', () => {
+      emojiPanel.classList.toggle('show');
+    });
+
+    window.insertEmoji = function(emoji) {
+      const cursorPos = messageContent.selectionStart;
+      const v = messageContent.value;
+      messageContent.value = v.substring(0, cursorPos) + emoji + v.substring(cursorPos);
+      messageContent.focus();
+      messageContent.selectionStart = messageContent.selectionEnd = cursorPos + emoji.length;
+    };
+
+    document.addEventListener('click', (e) => {
+      if (!emojiPanel.contains(e.target) && e.target !== emojiToggle) {
+        emojiPanel.classList.remove('show');
+      }
+    });
+
+    fileInput.addEventListener('change', handleFileSelect);
+
+    function handleFileSelect(e) {
+      const files = e.target.files;
+      if (!files.length) return;
+      if (selectedFiles.length + files.length > 9) {
+        showToast('最多只能上传9张图片', 'warning');
+        return;
+      }
+      for (let i = 0; i < files.length; i++) {
+        const f = files[i];
+        if (!f.type.startsWith('image/')) {
+          showToast(f.name + ' 不是图片', 'warning');
+          continue;
+        }
+        if (f.size > 5 * 1024 * 1024) {
+          showToast(f.name + ' 超过5MB', 'warning');
+          continue;
+        }
+        selectedFiles.push(f);
+        const reader = new FileReader();
+        reader.onload = e => {
+          const item = document.createElement('div');
+          item.className = 'preview-item';
+          item.innerHTML = `
+            <img src="${e.target.result}" class="image-preview">
+            <span class="remove-preview" onclick="removePreview(${selectedFiles.length-1})">&times;</span>
+          `;
+          previewContainer.appendChild(item);
+        };
+        reader.readAsDataURL(f);
+      }
+      fileInput.value = '';
+    }
+
+    window.removePreview = function(idx) {
+      selectedFiles.splice(idx, 1);
+      renderPreviews();
+    };
+
+    function renderPreviews() {
+      previewContainer.innerHTML = '';
+      selectedFiles.forEach((f, i) => {
+        const r = new FileReader();
+        r.onload = e => {
+          const item = document.createElement('div');
+          item.className = 'preview-item';
+          item.innerHTML = `
+            <img src="${e.target.result}" class="image-preview">
+            <span class="remove-preview" onclick="removePreview(${i})">&times;</span>
+          `;
+          previewContainer.appendChild(item);
+        };
+        r.readAsDataURL(f);
+      });
+    }
+
+    async function uploadImages() {
+      if (!selectedFiles.length) return [];
+      const urls = [];
+      uploadProgress.style.display = 'block';
+      progressBar.style.width = '0%';
+      try {
+        for (let i = 0; i < selectedFiles.length; i++) {
+          const f = selectedFiles[i];
+          const name = `${Date.now()}-${Math.random().toString(36).slice(2)}-${f.name}`;
+          const path = `guestbook-images/${name}`;
+          const { data, error } = await supabase.storage
+            .from('guestbook-bucket')
+            .upload(path, f, { cacheControl: '3600', upsert: false, contentType: f.type });
+          if (error) throw error;
+          const { data: urlData } = supabase.storage
+            .from('guestbook-bucket')
+            .getPublicUrl(path);
+          urls.push(urlData.publicUrl);
+          progressBar.style.width = Math.round(((i+1)/selectedFiles.length)*100) + '%';
+        }
+        return urls;
+      } catch (err) {
+        showToast('上传失败：' + err.message, 'error');
+        throw err;
+      } finally {
+        setTimeout(() => { uploadProgress.style.display = 'none'; progressBar.style.width = '0%'; }, 500);
+      }
+    }
+
+    window.openImageModal = function(url) {
+      modalImage.src = url;
+      modalImage.onerror = function(){};
+      imageModal.style.display = 'flex';
+    };
+
+    closeModal.onclick = () => { 
+      imageModal.style.display = 'none'; 
+      modalImage.src = ''; 
+    };
+
+    imageModal.onclick = e => {
+      if (e.target === imageModal) { 
+        imageModal.style.display = 'none'; 
+        modalImage.src = ''; 
+      }
+    };
+
+    messageForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const name = username.value.trim();
+      const content = messageContent.value.trim();
+
+      if (!name) return showToast('昵称不能为空', 'warning');
+      if (name.length > 20) return showToast('昵称过长', 'warning');
+      if (!content && !selectedFiles.length) return showToast('内容或图片不能都为空', 'warning');
+      if (content.length > 500) return showToast('内容过长', 'warning');
+
+      try {
+        const imgs = await uploadImages();
+        const { error } = await supabase.from('guestbook').insert([{
+          name, content: content || '（仅图片）', images: imgs.length ? imgs : null
+        }]);
+        if (error) throw error;
+
+        messageForm.reset();
+        selectedFiles = [];
+        previewContainer.innerHTML = '';
+        currentPage = 1;
+        loadMessages();
+        showToast('留言提交成功', 'success');
+      } catch (err) {
+        showToast('提交失败：' + err.message, 'error');
+      }
+    });
+
+    async function loadMessages() {
+      messageList.innerHTML = `<div class="loading-state"><i class="fas fa-spinner loading-icon"></i><p>加载中...</p></div>`;
+      try {
+        const from = (currentPage - 1) * pageSize;
+        const to = from + pageSize - 1;
+        const { count, error: countErr } = await supabase.from('guestbook').select('*', { count: 'exact', head: true });
+        if (countErr) throw countErr;
+        totalCount = count || 0;
+        totalPages = Math.ceil(totalCount / pageSize);
+
+        const { data, error } = await supabase
+          .from('guestbook')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .range(from, to);
+        if (error) throw error;
+
+        pagination.style.display = totalCount > 0 ? 'flex' : 'none';
+        pageInfo.textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
+        prevPage.classList.toggle('disabled', currentPage <= 1);
+        nextPage.classList.toggle('disabled', currentPage >= totalPages);
+
+        if (!data.length) {
+          messageList.innerHTML = `<div class="empty-state"><i class="fas fa-comment-dots empty-icon"></i><p>暂无留言，快来抢沙发吧～</p></div>`;
+          return;
+        }
+
+        let html = '';
+        data.forEach(item => {
+          let imgs = [];
+          if (item.images) {
+            if (typeof item.images === 'string') {
+              try { imgs = JSON.parse(item.images); } catch { imgs = [item.images]; }
+            } else if (Array.isArray(item.images)) {
+              imgs = item.images.filter(Boolean);
+            }
+          }
+
+          let imgHtml = '';
+          imgs.forEach(u => {
+            imgHtml += `<img src="${u}" class="message-image" onclick="openImageModal('${u}')" onerror="this.style.display='none'">`;
+          });
+
+          let replyHtml = '';
+          if (item.reply) {
+            replyHtml = `
+            <div class="message-reply">
+              <div class="reply-label">管理员回复</div>
+              <div class="reply-content">${escapeHtml(item.reply)}</div>
+            </div>`;
+          }
+
+          html += `
+            <div class="message-card">
+              <div class="message-header">
+                <span class="message-username">${escapeHtml(item.name)}</span>
+                <span class="message-time">${formatTime(item.created_at)}</span>
+              </div>
+              <div class="message-content">${escapeHtml(item.content)}</div>
+              ${imgHtml ? `<div class="message-images">${imgHtml}</div>` : ''}
+              ${replyHtml}
+            </div>`;
+        });
+
+        messageList.innerHTML = html;
+
+      } catch (err) {
+        messageList.innerHTML = `<div class="empty-state" style="color:#EF4444"><i class="fas fa-exclamation-circle empty-icon"></i><p>加载失败：${err.message}</p></div>`;
+      }
+    }
+
+    prevPage.addEventListener('click', () => {
+      if (currentPage <= 1) return;
+      currentPage--; loadMessages(); window.scrollTo({ top:0, behavior:'smooth' });
+    });
+
+    nextPage.addEventListener('click', () => {
+      if (currentPage >= totalPages) return;
+      currentPage++; loadMessages(); window.scrollTo({ top:0, behavior:'smooth' });
+    });
+
+    function escapeHtml(s) {
+      if (!s) return '';
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    function formatTime(iso) {
+      if (!iso) return '未知时间';
+      const date = new Date(iso);
+      return `${date.getMonth()+1}/${date.getDate()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+    }
+
+    function showToast(message, type) {
+      const old = document.querySelector('.toast');
+      if (old) old.remove();
+      const t = document.createElement('div');
+      t.className = `toast toast-${type}`;
+      t.textContent = message;
+      document.body.appendChild(t);
+      setTimeout(() => {
+        t.style.opacity = '0';
+        t.style.transition = 'opacity 0.5s';
+        setTimeout(() => t.remove(), 500);
+      }, 3000);
+    }
+
+    window.onload = () => { initEmojiPanel(); loadMessages(); };
+  </script>
+</body>
+</html>
 

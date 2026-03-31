@@ -56,7 +56,6 @@ body{background:#f6f7f9;padding:20px;max-width:1100px;margin:0 auto}
 <input class="search-box" id="kw" placeholder="搜索昵称/内容" oninput="load()">
 <button class="btn" onclick="toggleAll()">全选</button>
 <button class="btn btn-orange" onclick="batchDel()">批量删除</button>
-<button class="btn btn-green" onclick="openPwd()">修改密码</button>
 <button class="btn btn-gray" onclick="logout()">退出</button>
 </div>
 </div>
@@ -93,38 +92,21 @@ body{background:#f6f7f9;padding:20px;max-width:1100px;margin:0 auto}
 </div>
 </div>
 
-<div class="modal" id="pwdModal">
-<div class="box">
-<h3>修改密码</h3>
-<div class="label">旧密码</div>
-<input type="password" id="old">
-<div class="label">新密码</div>
-<input type="password" id="new1">
-<div class="label">确认新密码</div>
-<input type="password" id="new2">
-<button class="btn" onclick="savePwd()">保存</button>
-</div>
-</div>
-
 <script>
 const supabase = supabase.createClient(
   "https://eljzfbawdcfzufzehrtp.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVsanpmYmF3ZGNmenVmemVocnRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5MzUxNzQsImV4cCI6MjA5MDUxMTE3NH0.s4U7BJsscobR731mX-2lhp-A3riz65o6lTgn7XtCARI"
 );
 
-let adminPwd = localStorage.getItem("adminPwd");
-if (!adminPwd) {
-  adminPwd = "xyzvip";
-  localStorage.setItem("adminPwd", adminPwd);
-}
-
+// 固定密码，不再依赖localStorage
+const FIXED_PWD = "xyzvip";
 let page = 1;
 const limit = 15;
 let keyword = "";
 
 function login() {
   const val = document.getElementById("pwd").value.trim();
-  if (val === adminPwd) {
+  if (val === FIXED_PWD) {
     document.getElementById("login").style.display = "none";
     document.getElementById("admin").style.display = "block";
     sessionStorage.setItem("admin", "1");
@@ -139,6 +121,7 @@ function logout() {
   location.reload();
 }
 
+// 页面加载时检查登录状态
 if (sessionStorage.getItem("admin") === "1") {
   document.getElementById("login").style.display = "none";
   document.getElementById("admin").style.display = "block";
@@ -278,26 +261,6 @@ async function saveReply() {
   document.getElementById("replyModal").style.display = "none";
   load();
 }
-
-function openPwd() {
-  document.getElementById("old").value = "";
-  document.getElementById("new1").value = "";
-  document.getElementById("new2").value = "";
-  document.getElementById("pwdModal").style.display = "flex";
-}
-
-function savePwd() {
-  const old = document.getElementById("old").value;
-  const n1 = document.getElementById("new1").value;
-  const n2 = document.getElementById("new2").value;
-  if (old !== adminPwd) return alert("旧密码错误");
-  if (n1 !== n2) return alert("两次不一致");
-  adminPwd = n1;
-  localStorage.setItem("adminPwd", n1);
-  alert("修改成功");
-  document.getElementById("pwdModal").style.display = "none";
-}
 </script>
 </body>
 </html>
-

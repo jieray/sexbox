@@ -1,1 +1,542 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>留言本后台管理系统</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:"Microsoft YaHei", Arial, sans-serif; }
+    body { padding:20px; max-width:1200px; margin:0 auto; background:#f5f5f5; }
+    
+    .login-panel {
+      max-width:400px; margin:100px auto; background:white; padding:30px; border-radius:12px;
+      box-shadow:0 5px 15px rgba(0,0,0,0.1); text-align:center;
+    }
+    .login-title { color:#6366F1; margin-bottom:20px; font-size:24px; }
+    .login-input {
+      width:100%; padding:12px 15px; margin-bottom:15px; border:1px solid #e0e0e0; border-radius:8px; font-size:14px;
+    }
+    .login-btn {
+      width:100%; padding:12px; background:#6366F1; color:white; border:none; border-radius:8px; font-size:16px; cursor:pointer;
+      transition:all 0.3s;
+    }
+    .login-btn:hover { background:#4f46e5; }
+    .login-error { color:#ef4444; font-size:12px; margin-top:10px; display:none; }
+
+    .admin-panel { display:none; }
+    .header { 
+      display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; 
+      padding-bottom:15px; border-bottom:1px solid #ddd; flex-wrap:wrap; gap:12px;
+    }
+    .header-title { color:#6366F1; font-size:22px; }
+    .header-actions { display:flex; gap:10px; flex-wrap:wrap; }
+    .logout-btn, .batch-delete-btn, .clear-all-btn, .change-pwd-btn, .select-all-btn {
+      padding:8px 15px; border:none; border-radius:6px; cursor:pointer; font-size:14px; transition:all 0.2s;
+    }
+    .logout-btn { background:#94a3b8; color:white; }
+    .select-all-btn { background:#0ea5e9; color:white; }
+    .batch-delete-btn { background:#f59e0b; color:white; }
+    .clear-all-btn { background:#ef4444; color:white; }
+    .change-pwd-btn { background:#10b981; color:white; }
+    .logout-btn:hover { background:#64748b; }
+    .select-all-btn:hover { background:#0284c7; }
+    .batch-delete-btn:hover { background:#d97706; }
+    .clear-all-btn:hover { background:#dc2626; }
+    .change-pwd-btn:hover { background:#059669; }
+
+    .stats {
+      background:white; padding:15px; border-radius:8px; margin-bottom:20px;
+      display:flex; gap:20px; flex-wrap:wrap;
+    }
+    .stat-item { display:flex; align-items:center; gap:8px; }
+    .stat-label { color:#666; font-size:14px; }
+    .stat-value { color:#6366F1; font-weight:bold; font-size:18px; }
+
+    .message-list { margin-bottom:30px; }
+    .message-item {
+      background:white; padding:20px; border-radius:10px; margin-bottom:15px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.05); position:relative;
+    }
+    .message-checkbox {
+      position:absolute; top:20px; right:20px; width:18px; height:18px; cursor:pointer;
+    }
+    .message-header {
+      display:flex; justify-content:space-between; margin-bottom:12px; align-items:center;
+    }
+    .message-name { font-weight:bold; color:#6366F1; font-size:16px; }
+    .message-time { color:#999; font-size:12px; }
+    .message-content {
+      margin-bottom:15px; line-height:1.6; color:#333; white-space:pre-wrap;
+    }
+    .message-reply {
+      background:#f0fdf4; padding:10px; border-radius:6px; margin-bottom:10px;
+      border-left:3px solid #16a34a;
+    }
+    .reply-title { font-size:13px; color:#16a34a; font-weight:bold; }
+    .message-images {
+      display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px;
+    }
+    .message-image {
+      width:120px; height:120px; border-radius:6px; object-fit:cover; cursor:pointer;
+      transition:transform 0.2s; border:1px solid #eee;
+    }
+    .message-image:hover { transform:scale(1.05); }
+    .message-actions {
+      display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;
+    }
+    .reply-btn, .edit-btn, .delete-btn {
+      padding:6px 12px; border:none; border-radius:4px; cursor:pointer; font-size:14px; color:white;
+    }
+    .reply-btn { background:#0ea5e9; }
+    .edit-btn { background:#10b981; }
+    .delete-btn { background:#ef4444; }
+    .reply-btn:hover { background:#0284c7; }
+    .edit-btn:hover { background:#059669; }
+    .delete-btn:hover { background:#dc2626; }
+
+    .modal {
+      display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.5); z-index:999; align-items:center; justify-content:center; padding:20px;
+    }
+    .modal-content {
+      background:white; padding:25px; border-radius:12px; width:100%; max-width:500px;
+    }
+    .modal-title {
+      color:#6366F1; margin-bottom:20px; font-size:18px; display:flex;
+      justify-content:space-between; align-items:center;
+    }
+    .close-modal { cursor:pointer; font-size:20px; color:#999; }
+    .edit-form-group { margin-bottom:15px; }
+    .edit-label { display:block; margin-bottom:6px; color:#666; font-size:14px; }
+    .edit-input, .edit-textarea {
+      width:100%; padding:10px 12px; border:1px solid #e0e0e0; border-radius:6px; font-size:14px;
+    }
+    .edit-textarea { min-height:100px; resize:vertical; line-height:1.5; }
+    .save-btn {
+      background:#6366F1; color:white; border:none; padding:10px 20px; border-radius:6px;
+      cursor:pointer; font-size:14px; width:100%;
+    }
+    .save-btn:hover { background:#4f46e5; }
+
+    .pwd-modal .modal-content { max-width:420px; }
+
+    .loading, .empty {
+      text-align:center; padding:50px; color:#999; font-size:16px;
+    }
+    .empty { padding:30px; }
+
+    @media (max-width:768px) {
+      .header { flex-direction:column; align-items:flex-start; }
+      .message-image { width:100px; height:100px; }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.4/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+
+  <div class="login-panel" id="loginPanel">
+    <h2 class="login-title">留言本后台管理</h2>
+    <input type="password" class="login-input" id="adminPassword" placeholder="请输入管理员密码">
+    <button class="login-btn" onclick="login()">登录</button>
+    <div class="login-error" id="loginError">密码错误，请重试！</div>
+  </div>
+
+  <div class="admin-panel" id="adminPanel">
+    <div class="header">
+      <h1 class="header-title">留言本后台管理系统</h1>
+      <div class="header-actions">
+        <button class="select-all-btn" id="selectAllBtn">全选/取消全选</button>
+        <button class="batch-delete-btn" onclick="batchDelete()">批量删除</button>
+        <button class="clear-all-btn" onclick="clearAllMessages()">清空所有</button>
+        <button class="change-pwd-btn" onclick="openChangePwdModal()">修改密码</button>
+        <button class="logout-btn" onclick="logout()">退出登录</button>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat-item">
+        <span class="stat-label">总留言数：</span>
+        <span class="stat-value" id="totalCount">0</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">含图片留言：</span>
+        <span class="stat-value" id="imageCount">0</span>
+      </div>
+    </div>
+
+    <div class="message-list" id="messageList">
+      <div class="loading">正在加载留言数据...</div>
+    </div>
+  </div>
+
+  <!-- 编辑弹窗 -->
+  <div class="modal" id="editModal">
+    <div class="modal-content">
+      <div class="modal-title">
+        编辑留言
+        <span class="close-modal" onclick="closeModal('editModal')">&times;</span>
+      </div>
+      <input type="hidden" id="editId">
+      <div class="edit-form-group">
+        <label class="edit-label">昵称</label>
+        <input type="text" class="edit-input" id="editName" maxlength="20">
+      </div>
+      <div class="edit-form-group">
+        <label class="edit-label">内容</label>
+        <textarea class="edit-textarea" id="editContent" maxlength="500"></textarea>
+      </div>
+      <button class="save-btn" onclick="saveEdit()">保存修改</button>
+    </div>
+  </div>
+
+  <!-- 回复弹窗 -->
+  <div class="modal" id="replyModal">
+    <div class="modal-content">
+      <div class="modal-title">
+        管理员回复
+        <span class="close-modal" onclick="closeModal('replyModal')">&times;</span>
+      </div>
+      <input type="hidden" id="replyId">
+      <div class="edit-form-group">
+        <label class="edit-label">回复内容</label>
+        <textarea class="edit-textarea" id="replyContent" maxlength="300" placeholder="请输入回复内容"></textarea>
+      </div>
+      <button class="save-btn" onclick="saveReply()">保存回复</button>
+    </div>
+  </div>
+
+  <!-- 修改密码弹窗 -->
+  <div class="modal pwd-modal" id="changePwdModal">
+    <div class="modal-content">
+      <div class="modal-title">
+        修改管理员密码
+        <span class="close-modal" onclick="closeModal('changePwdModal')">&times;</span>
+      </div>
+      <div class="edit-form-group">
+        <label class="edit-label">当前密码</label>
+        <input type="password" class="edit-input" id="oldPwd">
+      </div>
+      <div class="edit-form-group">
+        <label class="edit-label">新密码</label>
+        <input type="password" class="edit-input" id="newPwd">
+      </div>
+      <div class="edit-form-group">
+        <label class="edit-label">确认新密码</label>
+        <input type="password" class="edit-input" id="confirmPwd">
+      </div>
+      <button class="save-btn" onclick="saveNewPassword()">保存新密码</button>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://eljzfbawdcfzufzehrtp.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVsanpmYmF3ZGNmenVmemVocnRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5MzUxNzQsImV4cCI6MjA5MDUxMTE3NH0.s4U7BJsscobR731mX-2lhp-A3riz65o6lTgn7XtCARI";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let ADMIN_PASSWORD = localStorage.getItem('ADMIN_PASSWORD') || "xyzvip";
+
+    // 登录
+    function login() {
+      const pwd = document.getElementById('adminPassword').value.trim();
+      if (pwd === ADMIN_PASSWORD) {
+        document.getElementById('loginError').style.display = 'none';
+        document.getElementById('loginPanel').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+        sessionStorage.setItem('adminLoggedIn', 'true');
+        loadAllMessages();
+      } else {
+        document.getElementById('loginError').style.display = 'block';
+      }
+    }
+
+    // 退出
+    function logout() {
+      if (confirm('确定退出登录？')) {
+        sessionStorage.removeItem('adminLoggedIn');
+        location.reload();
+      }
+    }
+
+    // 页面加载
+    window.onload = function () {
+      if (sessionStorage.getItem('adminLoggedIn') === 'true') {
+        document.getElementById('loginPanel').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+        loadAllMessages();
+      }
+      document.getElementById('adminPassword').addEventListener('keydown', e => {
+        if (e.key === 'Enter') login();
+      });
+      document.getElementById('selectAllBtn').addEventListener('click', toggleSelectAll);
+    };
+
+    // 全选/取消全选
+    function toggleSelectAll() {
+      const boxes = document.querySelectorAll('.message-checkbox');
+      const allChecked = Array.from(boxes).every(cb => cb.checked);
+      boxes.forEach(cb => cb.checked = !allChecked);
+    }
+
+    // 加载所有留言
+    async function loadAllMessages() {
+      try {
+        const { data, error, count } = await supabase
+          .from('guestbook')
+          .select('*', { count: 'exact' })
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        document.getElementById('totalCount').textContent = count || 0;
+        const imgCount = data?.filter(i => i.images?.length)?.length || 0;
+        document.getElementById('imageCount').textContent = imgCount;
+
+        if (!data || data.length === 0) {
+          document.getElementById('messageList').innerHTML = '<div class="empty">暂无留言数据</div>';
+          return;
+        }
+
+        let html = '';
+        data.forEach(item => {
+          let imgHtml = '';
+          if (item.images && Array.isArray(item.images) && item.images.length > 0) {
+            item.images.forEach(u => {
+              imgHtml += `<img src="${u}" class="message-image" onclick="window.open('${u}','_blank')">`;
+            });
+          }
+
+          let replyHtml = '';
+          if (item.reply) {
+            replyHtml = `
+            <div class="message-reply">
+              <div class="reply-title">管理员回复：</div>
+              <div>${escapeHtml(item.reply)}</div>
+            </div>`;
+          }
+
+          const time = new Date(item.created_at);
+          const fmTime = `${time.getFullYear()}-${String(time.getMonth()+1).padStart(2,0)}-${String(time.getDate()).padStart(2,0)} ${String(time.getHours()).padStart(2,0)}:${String(time.getMinutes()).padStart(2,0)}`;
+
+          html += `
+            <div class="message-item">
+              <input type="checkbox" class="message-checkbox" data-id="${item.id}">
+              <div class="message-header">
+                <span class="message-name">${escapeHtml(item.name)}</span>
+                <span class="message-time">${fmTime}</span>
+              </div>
+              <div class="message-content">${escapeHtml(item.content || '（仅图片）')}</div>
+              ${replyHtml}
+              ${imgHtml ? `<div class="message-images">${imgHtml}</div>` : ''}
+              <div class="message-actions">
+                <button class="reply-btn" onclick="openReplyModal('${item.id}', \`${escapeHtml(item.reply || '')}\`)">回复</button>
+                <button class="edit-btn" onclick="openEditModal('${item.id}', \`${escapeHtml(item.name)}\`, \`${escapeHtml(item.content || '')}\`)">编辑</button>
+                <button class="delete-btn" onclick="deleteMessage('${item.id}')">删除</button>
+              </div>
+            </div>`;
+        });
+
+        document.getElementById('messageList').innerHTML = html;
+      } catch (err) {
+        document.getElementById('messageList').innerHTML = `<div class="empty" style="color:red;">加载失败：${err.message}</div>`;
+      }
+    }
+
+    // 打开编辑弹窗
+    function openEditModal(id, name, content) {
+      document.getElementById('editId').value = id;
+      document.getElementById('editName').value = unescapeHtml(name);
+      document.getElementById('editContent').value = unescapeHtml(content);
+      document.getElementById('editModal').style.display = 'flex';
+    }
+
+    // 打开回复弹窗
+    function openReplyModal(id, reply) {
+      document.getElementById('replyId').value = id;
+      document.getElementById('replyContent').value = unescapeHtml(reply);
+      document.getElementById('replyModal').style.display = 'flex';
+    }
+
+    // 关闭弹窗
+    function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    // 保存编辑
+    async function saveEdit() {
+      const id = document.getElementById('editId').value;
+      const name = document.getElementById('editName').value.trim();
+      const content = document.getElementById('editContent').value.trim();
+
+      if (!name) { alert('昵称不能为空'); return; }
+      if (name.length > 20) { alert('昵称最多20字'); return; }
+      if (content.length > 500) { alert('内容最多500字'); return; }
+
+      try {
+        const { error } = await supabase
+          .from('guestbook')
+          .update({ name, content: content || '（仅图片）' })
+          .eq('id', id);
+
+        if (error) throw error;
+        alert('修改成功！');
+        closeModal('editModal');
+        loadAllMessages();
+      } catch (e) {
+        alert('修改失败：' + e.message);
+      }
+    }
+
+    // 保存回复
+    async function saveReply() {
+      const id = document.getElementById('replyId').value;
+      const reply = document.getElementById('replyContent').value.trim();
+
+      try {
+        const { error } = await supabase
+          .from('guestbook')
+          .update({ reply })
+          .eq('id', id);
+
+        if (error) throw error;
+        alert('回复成功！');
+        closeModal('replyModal');
+        loadAllMessages();
+      } catch (e) {
+        alert('回复失败：' + e.message);
+      }
+    }
+
+    // 删除单条
+    async function deleteMessage(id) {
+      if (!confirm('确定删除这条留言？删除不可恢复！')) return;
+
+      try {
+        // 获取图片
+        const { data: msg } = await supabase.from('guestbook').select('images').eq('id', id).single();
+        if (msg?.images && Array.isArray(msg.images)) {
+          for (const u of msg.images) {
+            const path = u.split('/guestbook-bucket/')[1];
+            if (path) await supabase.storage.from('guestbook-bucket').remove([path]);
+          }
+        }
+
+        const { error } = await supabase.from('guestbook').delete().eq('id', id);
+        if (error) throw error;
+
+        alert('删除成功');
+        loadAllMessages();
+      } catch (e) {
+        alert('删除失败：' + e.message);
+      }
+    }
+
+    // 批量删除
+    async function batchDelete() {
+      const list = Array.from(document.querySelectorAll('.message-checkbox:checked')).map(c => c.dataset.id);
+      if (list.length === 0) { alert('请先选择'); return; }
+      if (!confirm(`确定删除 ${list.length} 条留言？`)) return;
+
+      try {
+        // 删图片
+        const { data: msgs } = await supabase.from('guestbook').select('images').in('id', list);
+        if (msgs) {
+          for (const m of msgs) {
+            if (m.images && Array.isArray(m.images)) {
+              for (const u of m.images) {
+                const path = u.split('/guestbook-bucket/')[1];
+                if (path) await supabase.storage.from('guestbook-bucket').remove([path]);
+              }
+            }
+          }
+        }
+
+        const { error } = await supabase.from('guestbook').delete().in('id', list);
+        if (error) throw error;
+
+        alert(`已删除 ${list.length} 条`);
+        loadAllMessages();
+      } catch (e) {
+        alert('批量删除失败：' + e.message);
+      }
+    }
+
+    // 清空所有
+    async function clearAllMessages() {
+      if (!confirm('⚠️ 确定清空所有留言？不可恢复！')) return;
+
+      try {
+        // 删所有图片
+        const { data: msgs } = await supabase.from('guestbook').select('images');
+        const paths = [];
+        if (msgs) {
+          msgs.forEach(m => {
+            if (m.images && Array.isArray(m.images)) {
+              m.images.forEach(u => {
+                const p = u.split('/guestbook-bucket/')[1];
+                if (p) paths.push(p);
+              });
+            }
+          });
+        }
+        if (paths.length > 0) {
+          await supabase.storage.from('guestbook-bucket').remove(paths);
+        }
+
+        const { error } = await supabase.from('guestbook').delete();
+        if (error) throw error;
+
+        alert('已清空所有留言');
+        loadAllMessages();
+      } catch (e) {
+        alert('清空失败：' + e.message);
+      }
+    }
+
+    // 修改密码
+    function openChangePwdModal() {
+      document.getElementById('oldPwd').value = '';
+      document.getElementById('newPwd').value = '';
+      document.getElementById('confirmPwd').value = '';
+      document.getElementById('changePwdModal').style.display = 'flex';
+    }
+
+    function saveNewPassword() {
+      const old = document.getElementById('oldPwd').value;
+      const newPwd = document.getElementById('newPwd').value;
+      const confirm = document.getElementById('confirmPwd').value;
+
+      if (old !== ADMIN_PASSWORD) {
+        alert('当前密码错误');
+        return;
+      }
+      if (!newPwd || newPwd.length < 3) {
+        alert('新密码至少3位');
+        return;
+      }
+      if (newPwd !== confirm) {
+        alert('两次密码不一致');
+        return;
+      }
+
+      ADMIN_PASSWORD = newPwd;
+      localStorage.setItem('ADMIN_PASSWORD', newPwd);
+      alert('密码修改成功！下次登录生效');
+      closeModal('changePwdModal');
+    }
+
+    // XSS
+    function escapeHtml(s) {
+      if (!s) return '';
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function unescapeHtml(s) {
+      if (!s) return '';
+      const d = document.createElement('div');
+      d.innerHTML = s;
+      return d.textContent;
+    }
+  </script>
+</body>
+</html>
 
